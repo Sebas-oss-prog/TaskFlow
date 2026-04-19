@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="TaskFlow.Core/TaskFlow.Core.csproj" Id="ffb1d91e-732b-47fd-b19f-b36ec711c171" />
+  <Project Path="TaskFlow.Tests/TaskFlow.Tests.csproj" Id="a62c45bc-e714-4a5d-abf6-80e367197cea" />
   <Project Path="TaskFlow/TaskFlow.csproj" />
 </Solution>
