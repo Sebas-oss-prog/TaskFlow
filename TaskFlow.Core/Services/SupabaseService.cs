@@ -9,6 +9,10 @@ namespace TaskFlow.Core.Services
 {
     public class SupabaseService
     {
+        private const string StatusNew = "Новая";
+        private const string StatusCompleted = "Выполнено";
+        private const string StatusOverdue = "Просрочено";
+
         private readonly Client _client;
         private bool _isInitialized;
 
@@ -37,6 +41,7 @@ namespace TaskFlow.Core.Services
         public async Task<List<TaskItem>> GetAllTasksAsync()
         {
             await InitializeAsync();
+            await CheckAndUpdateOverdueTasksAsync();
 
             var tasks = await _client
                 .From<TaskItem>()
@@ -52,6 +57,7 @@ namespace TaskFlow.Core.Services
         public async Task<List<TaskItem>> GetTasksByResponsibleAsync(Guid responsibleId)
         {
             await InitializeAsync();
+            await CheckAndUpdateOverdueTasksAsync();
 
             var tasks = await _client
                 .From<TaskItem>()
@@ -78,7 +84,7 @@ namespace TaskFlow.Core.Services
                     ResponsibleId = draft.ResponsibleId,
                     AssignedById = CurrentUser.User?.Id ?? Guid.Empty,
                     DueDate = draft.DueDate,
-                    Status = string.IsNullOrWhiteSpace(draft.Status) ? "Новая" : draft.Status,
+                    Status = ResolveActualStatus(string.IsNullOrWhiteSpace(draft.Status) ? StatusNew : draft.Status, draft.DueDate),
                     Priority = string.IsNullOrWhiteSpace(draft.Priority) ? "Средний" : draft.Priority,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
@@ -105,10 +111,9 @@ namespace TaskFlow.Core.Services
 
             try
             {
-                // Создаём минимальный объект только с нужными полями
                 var updateObject = new TaskStatusUpdate
                 {
-                    Status = newStatus,
+                    Status = ResolveActualStatus(newStatus, task.DueDate),
                     UpdatedAt = DateTime.Now
                 };
 
@@ -137,18 +142,13 @@ namespace TaskFlow.Core.Services
                 .Get();
 
             var tasks = tasksResponse.Models ?? new List<TaskItem>();
-            var today = DateTime.Today;
             var updatedCount = 0;
 
-            foreach (var task in tasks.Where(t =>
-                t.DueDate.HasValue &&
-                t.DueDate.Value.Date < today &&
-                !string.Equals(t.Status, "Выполнено", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(t.Status, "Просрочено", StringComparison.OrdinalIgnoreCase)))
+            foreach (var task in tasks.Where(ShouldMarkAsOverdue))
             {
                 var updateObject = new TaskStatusUpdate
                 {
-                    Status = "Просрочено",
+                    Status = StatusOverdue,
                     UpdatedAt = DateTime.Now
                 };
 
@@ -158,7 +158,10 @@ namespace TaskFlow.Core.Services
                     .Update(updateObject);
 
                 if (response.ResponseMessage?.IsSuccessStatusCode == true)
+                {
+                    task.Status = StatusOverdue;
                     updatedCount++;
+                }
             }
 
             Console.WriteLine($"✅ Проверка просроченных задач завершена. Обновлено: {updatedCount}");
@@ -293,16 +296,42 @@ namespace TaskFlow.Core.Services
                     : "Система";
             }
         }
+
+        private static bool ShouldMarkAsOverdue(TaskItem task)
+        {
+            return task.DueDate.HasValue &&
+                   task.DueDate.Value.Date < DateTime.Today &&
+                   !string.Equals(task.Status, StatusCompleted, StringComparison.OrdinalIgnoreCase) &&
+                   !string.Equals(task.Status, StatusOverdue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ResolveActualStatus(string requestedStatus, DateTime? dueDate)
+        {
+            if (string.Equals(requestedStatus, StatusCompleted, StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCompleted;
+            }
+
+            if (dueDate.HasValue && dueDate.Value.Date < DateTime.Today)
+            {
+                return StatusOverdue;
+            }
+
+            return requestedStatus;
+        }
     }
 
     // ====================== Вспомогательная модель для обновления статуса ======================
     [Supabase.Postgrest.Attributes.Table("tasks")]
     public class TaskStatusUpdate : Supabase.Postgrest.Models.BaseModel
     {
+        [Supabase.Postgrest.Attributes.PrimaryKey("id", false)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
         [Supabase.Postgrest.Attributes.Column("status")]
         public string Status { get; set; } = string.Empty;
 
         [Supabase.Postgrest.Attributes.Column("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
     }
 }

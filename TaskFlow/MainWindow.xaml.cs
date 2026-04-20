@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,6 +54,7 @@ namespace TaskFlow
             {
                 await _supabaseService.InitializeAsync();
                 await _supabaseService.CheckAndUpdateOverdueTasksAsync();
+                _viewModel.ApplyCurrentUser();
                 ShowLoginOverlay();
             }
             catch (Exception ex)
@@ -69,22 +70,32 @@ namespace TaskFlow
 
         private void ShowLoginOverlay()
         {
-            _loginOverlay = new LoginOverlay();
-            _loginOverlay.LoginSuccessful += LoginOverlay_LoginSuccessful;
-            // Оверлей должен перекрывать всё окно, а не только верхнюю строку корневой сетки.
-            Grid.SetRowSpan(_loginOverlay, MainGrid.RowDefinitions.Count);
-            Panel.SetZIndex(_loginOverlay, 1000);
-            MainGrid.Children.Add(_loginOverlay);
+            MainContentArea.Content = null;
+            ShellGrid.IsHitTestVisible = false;
+
+            if (_loginOverlay is null)
+            {
+                _loginOverlay = new LoginOverlay();
+                _loginOverlay.LoginSuccessful += LoginOverlay_LoginSuccessful;
+                Grid.SetRowSpan(_loginOverlay, MainGrid.RowDefinitions.Count);
+                Panel.SetZIndex(_loginOverlay, 1000);
+                OverlayHost.Children.Add(_loginOverlay);
+            }
+
+            OverlayHost.Visibility = Visibility.Visible;
         }
 
         private async void LoginOverlay_LoginSuccessful(object? sender, User loggedInUser)
         {
             if (_loginOverlay is not null)
             {
-                MainGrid.Children.Remove(_loginOverlay);
+                OverlayHost.Children.Remove(_loginOverlay);
                 _loginOverlay.LoginSuccessful -= LoginOverlay_LoginSuccessful;
                 _loginOverlay = null;
             }
+
+            OverlayHost.Visibility = Visibility.Collapsed;
+            ShellGrid.IsHitTestVisible = true;
 
             await _viewModel.InitializeForCurrentUserAsync();
             _calendarView.SetTasks(_viewModel.Tasks.ToList());
@@ -174,7 +185,6 @@ namespace TaskFlow
         {
             CurrentUser.Logout();
             _viewModel.ApplyCurrentUser();
-            MainContentArea.Content = null;
             ShowLoginOverlay();
         }
 
@@ -195,4 +205,3 @@ namespace TaskFlow
         }
     }
 }
-
