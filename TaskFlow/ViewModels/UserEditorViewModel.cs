@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+п»їusing CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
@@ -13,19 +13,19 @@ namespace TaskFlow.ViewModels
         private readonly SupabaseService _supabaseService;
         private readonly User? _sourceUser;
 
-        public ObservableCollection<string> RoleOptions { get; } = new(new[] { "Пользователь", "Администратор", "Председатель" });
+        public ObservableCollection<string> RoleOptions { get; } = new(new[] { "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ", "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ", "РџСЂРµРґСЃРµРґР°С‚РµР»СЊ" });
 
         public event Action<bool?>? CloseRequested;
         public event Action<string, string>? NotificationRequested;
 
         public bool IsEditMode => _sourceUser is not null;
-        public string WindowTitle => IsEditMode ? "Редактирование пользователя" : "Новый пользователь";
+        public string WindowTitle => IsEditMode ? "Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ" : "РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ";
 
         [ObservableProperty]
         private string fullName = string.Empty;
 
         [ObservableProperty]
-        private string role = "Пользователь";
+        private string role = "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ";
 
         [ObservableProperty]
         private string login = string.Empty;
@@ -53,7 +53,7 @@ namespace TaskFlow.ViewModels
             if (user is not null)
             {
                 FullName = user.FullName;
-                Role = string.IsNullOrWhiteSpace(user.Role) ? "Пользователь" : user.Role;
+                Role = string.IsNullOrWhiteSpace(user.Role) ? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ" : user.Role;
                 Login = user.Login;
                 Password = user.Password;
                 Email = user.Email;
@@ -67,13 +67,20 @@ namespace TaskFlow.ViewModels
         {
             if (string.IsNullOrWhiteSpace(FullName) || string.IsNullOrWhiteSpace(Role) || string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Password))
             {
-                NotificationRequested?.Invoke("Проверка", "Заполните ФИО, роль, логин и пароль.");
+                NotificationRequested?.Invoke("РџСЂРѕРІРµСЂРєР°", "Р—Р°РїРѕР»РЅРёС‚Рµ Р¤РРћ, СЂРѕР»СЊ, Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ.");
                 return;
             }
 
             try
             {
                 IsBusy = true;
+
+                if (IsBlocked && User.IsProtectedAdministratorUser(_sourceUser))
+                {
+                    NotificationRequested?.Invoke("Р”РѕСЃС‚СѓРї РѕРіСЂР°РЅРёС‡РµРЅ", "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР° (РџСЂРµРґСЃРµРґР°С‚РµР»СЏ) РЅРµР»СЊР·СЏ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ.");
+                    IsBlocked = false;
+                    return;
+                }
 
                 var model = new UserUpsertModel
                 {
@@ -94,7 +101,7 @@ namespace TaskFlow.ViewModels
 
                 if (!success)
                 {
-                    NotificationRequested?.Invoke("Ошибка", "Supabase не подтвердил сохранение пользователя.");
+                    NotificationRequested?.Invoke("РћС€РёР±РєР°", "Supabase РЅРµ РїРѕРґС‚РІРµСЂРґРёР» СЃРѕС…СЂР°РЅРµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.");
                     return;
                 }
 
@@ -102,7 +109,7 @@ namespace TaskFlow.ViewModels
             }
             catch (Exception ex)
             {
-                NotificationRequested?.Invoke("Ошибка", ex.Message);
+                NotificationRequested?.Invoke("РћС€РёР±РєР°", ex.Message);
             }
             finally
             {
@@ -117,3 +124,4 @@ namespace TaskFlow.ViewModels
         }
     }
 }
+

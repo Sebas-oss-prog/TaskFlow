@@ -54,7 +54,7 @@
                                 </WrapPanel>
 
                                 <TextBlock Text="{Binding Login, StringFormat=Логин: {0}}" Margin="0,10,0,0" Opacity="0.78"/>
-                                <TextBlock Text="{Binding Email, StringFormat=Email: {0}}" Margin="0,4,0,0" Opacity="0.78"/>
+                                <TextBlock Text="{Binding Email, StringFormat=Эл. почта: {0}}" Margin="0,4,0,0" Opacity="0.78"/>
                                 <TextBlock Text="{Binding Phone, StringFormat=Телефон: {0}}" Margin="0,4,0,0" Opacity="0.78"/>
                             </StackPanel>
 
@@ -69,6 +69,7 @@
                                 <Button Padding="18,0"
                                         Command="{Binding DataContext.ToggleUserBlockedCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                         CommandParameter="{Binding}"
+                                        ToolTip="Администратора и председателя блокировать нельзя."
                                         Style="{StaticResource MaterialDesignRaisedButton}">
                                     <Button.Content>
                                         <TextBlock Text="Разблокировать">

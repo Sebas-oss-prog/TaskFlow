@@ -17,6 +17,7 @@ namespace TaskFlow.Converters
                     "В работе" => new SolidColorBrush(Color.FromRgb(255, 152, 0)),
                     "На проверке" => new SolidColorBrush(Color.FromRgb(156, 39, 176)),
                     "Выполнено" => new SolidColorBrush(Color.FromRgb(76, 175, 80)),
+                    "Просрочено" => new SolidColorBrush(Color.FromRgb(220, 38, 38)),
                     _ => new SolidColorBrush(Color.FromRgb(158, 158, 158))
                 };
             }

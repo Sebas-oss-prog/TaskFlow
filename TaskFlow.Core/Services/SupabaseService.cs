@@ -1,4 +1,4 @@
-using Supabase;
+﻿using Supabase;
 using TaskFlow.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ namespace TaskFlow.Core.Services
 
         private const string SupabaseUrl = "https://bycusssvkhqtndugmrlv.supabase.co";
         private const string SupabaseKey = "sb_publishable_3rWpTadtQciSBsLGMR9aGQ_ABEQNOjr";
-        private const string BlockedColumnName = "is_blocked";
 
         public SupabaseService()
         {
@@ -29,10 +28,7 @@ namespace TaskFlow.Core.Services
 
         public async Task InitializeAsync()
         {
-            if (_isInitialized)
-            {
-                return;
-            }
+            if (_isInitialized) return;
 
             await _client.InitializeAsync();
             _isInitialized = true;
@@ -82,8 +78,8 @@ namespace TaskFlow.Core.Services
                     ResponsibleId = draft.ResponsibleId,
                     AssignedById = CurrentUser.User?.Id ?? Guid.Empty,
                     DueDate = draft.DueDate,
-                    Status = string.IsNullOrWhiteSpace(draft.Status) ? "�����" : draft.Status,
-                    Priority = string.IsNullOrWhiteSpace(draft.Priority) ? "�������" : draft.Priority,
+                    Status = string.IsNullOrWhiteSpace(draft.Status) ? "Новая" : draft.Status,
+                    Priority = string.IsNullOrWhiteSpace(draft.Priority) ? "Средний" : draft.Priority,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -96,30 +92,80 @@ namespace TaskFlow.Core.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("�� ������� ������� ������ � Supabase.", ex);
+                throw new InvalidOperationException("Не удалось создать задачу в Supabase.", ex);
             }
         }
 
+        /// <summary>
+        /// Обновление статуса задачи (самый безопасный способ для твоей версии Supabase)
+        /// </summary>
         public async Task<bool> UpdateTaskStatusAsync(TaskItem task, string newStatus)
         {
             await InitializeAsync();
 
             try
             {
-                task.Status = newStatus;
-                task.UpdatedAt = DateTime.Now;
+                // Создаём минимальный объект только с нужными полями
+                var updateObject = new TaskStatusUpdate
+                {
+                    Status = newStatus,
+                    UpdatedAt = DateTime.Now
+                };
 
                 var response = await _client
-                    .From<TaskItem>()
-                    .Update(task);
+                    .From<TaskStatusUpdate>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, task.Id.ToString())
+                    .Update(updateObject);
 
                 return response.ResponseMessage?.IsSuccessStatusCode == true;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("�� ������� �������� ������ ������.", ex);
+                throw new InvalidOperationException("Не удалось обновить статус задачи.", ex);
             }
         }
+
+        /// <summary>
+        /// Проверка и обновление просроченных задач
+        /// </summary>
+        public async Task<int> CheckAndUpdateOverdueTasksAsync()
+        {
+            await InitializeAsync();
+
+            var tasksResponse = await _client
+                .From<TaskItem>()
+                .Get();
+
+            var tasks = tasksResponse.Models ?? new List<TaskItem>();
+            var today = DateTime.Today;
+            var updatedCount = 0;
+
+            foreach (var task in tasks.Where(t =>
+                t.DueDate.HasValue &&
+                t.DueDate.Value.Date < today &&
+                !string.Equals(t.Status, "Выполнено", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(t.Status, "Просрочено", StringComparison.OrdinalIgnoreCase)))
+            {
+                var updateObject = new TaskStatusUpdate
+                {
+                    Status = "Просрочено",
+                    UpdatedAt = DateTime.Now
+                };
+
+                var response = await _client
+                    .From<TaskStatusUpdate>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, task.Id.ToString())
+                    .Update(updateObject);
+
+                if (response.ResponseMessage?.IsSuccessStatusCode == true)
+                    updatedCount++;
+            }
+
+            Console.WriteLine($"✅ Проверка просроченных задач завершена. Обновлено: {updatedCount}");
+            return updatedCount;
+        }
+
+        // ====================== Остальные методы без изменений ======================
 
         public async Task<List<User>> GetAllUsersAsync()
         {
@@ -140,7 +186,6 @@ namespace TaskFlow.Core.Services
             try
             {
                 user.CreatedAt = DateTime.Now;
-
                 var response = await _client
                     .From<UserUpsertModel>()
                     .Insert(user);
@@ -149,7 +194,7 @@ namespace TaskFlow.Core.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("�� ������� �������� ������������.", ex);
+                throw new InvalidOperationException("Не удалось добавить пользователя.", ex);
             }
         }
 
@@ -167,7 +212,7 @@ namespace TaskFlow.Core.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("�� ������� �������� ������������.", ex);
+                throw new InvalidOperationException("Не удалось обновить пользователя.", ex);
             }
         }
 
@@ -177,6 +222,11 @@ namespace TaskFlow.Core.Services
 
             try
             {
+                if (isBlocked && user.IsProtectedAdministrator)
+                {
+                    throw new InvalidOperationException("Администратора (Председателя) нельзя заблокировать.");
+                }
+
                 var model = ToUpsertModel(user);
                 model.IsBlocked = isBlocked;
 
@@ -189,7 +239,7 @@ namespace TaskFlow.Core.Services
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
-                    $"�� ������� �������� ������ ����������. ��� ���� ������� ����� ������� '{BlockedColumnName}' � ������� users.",
+                    $"Не удалось изменить статус блокировки. Для этой функции нужна колонка 'is_blocked' в таблице users.",
                     ex);
             }
         }
@@ -212,10 +262,7 @@ namespace TaskFlow.Core.Services
 
         private async Task EnrichTasksWithUserNamesAsync(List<TaskItem> tasks)
         {
-            if (tasks.Count == 0)
-            {
-                return;
-            }
+            if (tasks.Count == 0) return;
 
             var userIds = tasks
                 .Where(t => t.ResponsibleId.HasValue || t.AssignedById.HasValue)
@@ -225,10 +272,7 @@ namespace TaskFlow.Core.Services
                 .Distinct()
                 .ToList();
 
-            if (userIds.Count == 0)
-            {
-                return;
-            }
+            if (userIds.Count == 0) return;
 
             var usersResponse = await _client
                 .From<User>()
@@ -242,12 +286,23 @@ namespace TaskFlow.Core.Services
             {
                 task.ResponsibleName = task.ResponsibleId.HasValue && usersDict.TryGetValue(task.ResponsibleId.Value, out var responsibleName)
                     ? responsibleName
-                    : "�� ��������";
+                    : "Не назначен";
 
                 task.AssignedByName = task.AssignedById.HasValue && usersDict.TryGetValue(task.AssignedById.Value, out var assignedByName)
                     ? assignedByName
-                    : "�������";
+                    : "Система";
             }
         }
+    }
+
+    // ====================== Вспомогательная модель для обновления статуса ======================
+    [Supabase.Postgrest.Attributes.Table("tasks")]
+    public class TaskStatusUpdate : Supabase.Postgrest.Models.BaseModel
+    {
+        [Supabase.Postgrest.Attributes.Column("status")]
+        public string Status { get; set; } = string.Empty;
+
+        [Supabase.Postgrest.Attributes.Column("updated_at")]
+        public DateTime UpdatedAt { get; set; }
     }
 }

@@ -7,6 +7,8 @@ namespace TaskFlow.Core.Models
     [Table("users")]
     public class User : BaseModel
     {
+        private const string ProtectedChairmanSurname = "Коврова";
+
         [PrimaryKey("id", false)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -39,5 +41,20 @@ namespace TaskFlow.Core.Models
 
         [System.Text.Json.Serialization.JsonIgnore]
         public string StatusDisplay => IsBlocked ? "Заблокирован" : "Активен";
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsProtectedAdministrator => IsProtectedAdministratorUser(this);
+
+        public static bool IsProtectedAdministratorUser(User? user)
+        {
+            if (user is null)
+            {
+                return false;
+            }
+
+            return string.Equals(user.Role, "Админ", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(user.Role, "Администратор", StringComparison.OrdinalIgnoreCase)
+                || user.FullName.Contains(ProtectedChairmanSurname, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

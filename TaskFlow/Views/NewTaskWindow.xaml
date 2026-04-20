@@ -94,7 +94,7 @@
                         CornerRadius="18">
                     <StackPanel Orientation="Horizontal">
                         <material:PackIcon Kind="LightbulbOnOutline" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Top"/>
-                        <TextBlock Text="Форму можно открывать из вкладки шаблонов и прямо из ответа AI. Поля уже будут заполнены, а перед сохранением их можно изменить."
+                        <TextBlock Text="Форму можно открывать из вкладки шаблонов и прямо из ответа ИИ. Поля уже будут заполнены, а перед сохранением их можно изменить."
                                    TextWrapping="Wrap"
                                    Opacity="0.8"/>
                     </StackPanel>

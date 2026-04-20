@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +16,7 @@ namespace TaskFlow.Views
         public LoginOverlay()
         {
             InitializeComponent();
+            Loaded += (_, _) => txtLogin.Focus();
         }
 
         public void LoadUsers(System.Collections.Generic.List<User> users)
@@ -30,7 +31,7 @@ namespace TaskFlow.Views
 
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Введите логин и пароль.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ.", "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -49,14 +50,23 @@ namespace TaskFlow.Views
 
                 if (user is null)
                 {
-                    MessageBox.Show("Неверный логин или пароль.", "Ошибка входа", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("РќРµРІРµСЂРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё РїР°СЂРѕР»СЊ.", "РћС€РёР±РєР° РІС…РѕРґР°", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 if (user.IsBlocked)
                 {
-                    MessageBox.Show("Этот пользователь заблокирован. Обратитесь к администратору.", "Вход запрещён", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    if (user.IsProtectedAdministrator)
+                    {
+                        await _supabaseService.SetUserBlockedAsync(user, false);
+                        user.IsBlocked = false;
+                        MessageBox.Show("РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР° (РџСЂРµРґСЃРµРґР°С‚РµР»СЏ) РЅРµР»СЊР·СЏ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ.", "Р”РѕСЃС‚СѓРї РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅ", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Р­С‚РѕС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ. РћР±СЂР°С‚РёС‚РµСЃСЊ Рє Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂСѓ.", "Р’С…РѕРґ Р·Р°РїСЂРµС‰С‘РЅ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
                 }
 
                 CurrentUser.Login(user);
@@ -64,7 +74,7 @@ namespace TaskFlow.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при входе:\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"РћС€РёР±РєР° РїСЂРё РІС…РѕРґРµ:\n{ex.Message}", "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -76,3 +86,4 @@ namespace TaskFlow.Views
         }
     }
 }
+

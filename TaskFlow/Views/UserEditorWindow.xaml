@@ -72,7 +72,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
-                         material:HintAssist.Hint="Email"
+                         material:HintAssist.Hint="Эл. почта"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
                 <TextBox Grid.Column="2"
@@ -84,6 +84,7 @@
             <CheckBox Grid.Row="10"
                       IsChecked="{Binding IsBlocked}"
                       Content="Заблокировать вход пользователю"
+                      ToolTip="Для председателя и администратора блокировка недоступна."
                       VerticalAlignment="Center"/>
 
             <ProgressBar Grid.Row="11"

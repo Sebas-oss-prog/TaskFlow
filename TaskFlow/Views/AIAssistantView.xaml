@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="24,20,24,16">
-            <TextBlock Text="AI Помощник" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock Text="ИИ-помощник" FontSize="30" FontWeight="SemiBold"/>
             <TextBlock Text="Сформулируйте запрос, получите ответ и при необходимости сразу превратите его в задачу." Margin="0,8,0,0" Opacity="0.72" FontSize="14"/>
         </StackPanel>
 

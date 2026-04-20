@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyTitle>РайПО Задачи</AssemblyTitle>
+    <Product>РайПО Задачи</Product>
+    <Description>Слободское РайПО</Description>
   </PropertyGroup>
 
   <ItemGroup>
