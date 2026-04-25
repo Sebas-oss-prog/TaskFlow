@@ -1,11 +1,12 @@
 ﻿using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using System;
+using System.Text.Json.Serialization;
 
-namespace TaskFlow.Models
+namespace TaskFlow.Core.Models
 {
     [Table("tasks")]
-    public class TaskInsertModel : BaseModel
+    public class TaskItem : BaseModel
     {
         [PrimaryKey("id", false)]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -36,5 +37,13 @@ namespace TaskFlow.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        // Вспомогательные поля ТОЛЬКО для отображения в интерфейсе
+        // Они полностью игнорируются Supabase
+        [JsonIgnore]
+        public string ResponsibleName { get; set; } = "Не назначен";
+
+        [JsonIgnore]
+        public string AssignedByName { get; set; } = "";
     }
 }

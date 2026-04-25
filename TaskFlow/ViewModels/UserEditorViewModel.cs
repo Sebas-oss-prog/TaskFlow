@@ -3,8 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using TaskFlow.Models;
-using TaskFlow.Services;
+using TaskFlow.Core.Models;
+using TaskFlow.Core.Services;
 
 namespace TaskFlow.ViewModels
 {

@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using TaskFlow.Models;
-using TaskFlow.Services;
+using TaskFlow.Core.Models;
+using TaskFlow.Core.Services;
 
 namespace TaskFlow.Views
 {

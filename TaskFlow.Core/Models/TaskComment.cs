@@ -2,7 +2,7 @@
 using Supabase.Postgrest.Models;
 using System;
 
-namespace TaskFlow.Models
+namespace TaskFlow.Core.Models
 {
     [Table("task_comments")]
     public class TaskComment : BaseModel

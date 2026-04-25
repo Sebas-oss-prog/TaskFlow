@@ -1,4 +1,4 @@
-namespace TaskFlow.Models
+namespace TaskFlow.Core.Models
 {
     public static class CurrentUser
     {

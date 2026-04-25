@@ -4,8 +4,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using TaskFlow.Models;
-using TaskFlow.Services;
+using TaskFlow.Core.Models;
+using TaskFlow.Core.Services;
 
 namespace TaskFlow.ViewModels
 {

@@ -3,8 +3,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using TaskFlow.Models;
-using TaskFlow.Services;
+using TaskFlow.Core.Models;
+using TaskFlow.Core.Services;
 using TaskFlow.ViewModels;
 using TaskFlow.Views;
 

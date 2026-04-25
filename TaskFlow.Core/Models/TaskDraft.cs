@@ -1,6 +1,6 @@
 using System;
 
-namespace TaskFlow.Models
+namespace TaskFlow.Core.Models
 {
     public class TaskDraft
     {

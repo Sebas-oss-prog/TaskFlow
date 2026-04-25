@@ -1,11 +1,11 @@
 using Supabase;
-using TaskFlow.Models;
+using TaskFlow.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TaskFlow.Services
+namespace TaskFlow.Core.Services
 {
     public class SupabaseService
     {

@@ -3,9 +3,9 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TaskFlow.Models;
+using TaskFlow.Core.Models;
 
-namespace TaskFlow.Services
+namespace TaskFlow.Core.Services
 {
     public class OllamaService
     {

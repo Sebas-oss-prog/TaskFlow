@@ -20,7 +20,10 @@
     <PackageReference Include="MaterialDesignColors" Version="3.1.0" />
     <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
     <PackageReference Include="OllamaSharp" Version="5.0.1" />
-    <PackageReference Include="Supabase" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskFlow.Core\TaskFlow.Core.csproj" />
   </ItemGroup>
 
 </Project>
